@@ -10,8 +10,8 @@
 #define BASE_NAME "UamSensor"
 
 //Se cambian cuando se conectan a otra red
-const char* ssdi = "INFINITUMD79B_2.4";
-const char* psswd = "Agosto2016";
+const char* ssdi = "INFINITUMD79B_2.4";//"INFINITUMD79B_2.4"labred"";
+const char* psswd =  "Agosto2016";//"labred2017*/";
 
 using namespace std;
 
@@ -24,6 +24,7 @@ using namespace std;
  */
 String generarNombre(String nombre, int claveMax){
 
+  srand(time(NULL));
   String nuevoNombre;
 
   //Numero entre 1 y claveMax
@@ -31,7 +32,6 @@ String generarNombre(String nombre, int claveMax){
 
   String numString = String(numero);
   
-
   nuevoNombre = nombre+ numString;
 
   return nuevoNombre;
@@ -43,11 +43,10 @@ String generarNombre(String nombre, int claveMax){
  * @brief En primera instancia se dara de alta el servicio que ofrece el dispositivo
  * para que la aplicacion pueda encontrarlo y posteriormente hacer la comunicación
  * cliente servidor
+ * SENSOR 1
  */
 
 void setup() {
-
-  srand(time(NULL));
 
   String nombreDispositivo;
   
