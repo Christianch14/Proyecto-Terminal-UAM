@@ -1,5 +1,6 @@
 package com.example.app_cf.Components
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,9 +26,8 @@ import com.example.app_cf.R
 import com.example.app_cf.Services_NSD.DiscoverServices
 
 @Composable
-fun MainScreen(){
+fun MainScreen(context:Context){
 
-    val context = LocalContext.current
     val discoverSv = DiscoverServices()
 
     // Showbars(flag =false)
@@ -67,6 +67,7 @@ fun MainScreen(){
         }
         Spacer(modifier = Modifier.height(20.dp))
         Button(onClick = {
+            discoverSv.InitDiscoveryService(context)
             Toast.makeText(context,"Buscando dispositivos..", Toast.LENGTH_SHORT).show()
             },
             shape = RoundedCornerShape(10.dp),

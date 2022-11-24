@@ -1,11 +1,14 @@
 package com.example.app_cf.Services_NSD
 
 import android.content.Context
+import android.content.Intent
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.example.app_cf.Model.ServiceDevice
+import com.example.app_cf.View.DeviceListActivity
 
 class DiscoverServices {
 
@@ -19,8 +22,7 @@ class DiscoverServices {
         private val TAG =DiscoverServices::class.java.simpleName
     }
 
-    var listServices =ArrayList</*Model*/>()
-
+    var listServicesDevices = ArrayList<ServiceDevice>()
 
     private lateinit var nsdManager: NsdManager
     private var discoveryInProgess: Boolean = false
@@ -55,10 +57,9 @@ class DiscoverServices {
 
             if(service.serviceName.contains(mServiceName)){
                 Log.d(TAG,"Servicio ${service.serviceName} encontrado")
-
-                //Lo agrega a la lista
-                listServices.add()
-                Log.d(TAG,"Tam lista ${listServices.size}")
+                listServicesDevices.add(ServiceDevice(service.serviceName,service.serviceType))
+                Log.d(TAG,"Servicio ${service.serviceName} agregado con exito")
+                Log.d(TAG,"Tam lista ${listServicesDevices.size}")
             }
         }
 
@@ -74,11 +75,6 @@ class DiscoverServices {
              *
              */
             Log.d(TAG,"Servicio detenido")
-
-            for ( i in listServices){
-                Log.d(TAG,"Detalles Servicio $i")
-            }
-
             discoveryInProgess = false
         }
 
@@ -143,7 +139,9 @@ class DiscoverServices {
                 *  y la pantalla  deviceListScreen debe de recibir la lista y mostrarla
                 * en su propia interfaz
                 * */
-
+                var intent = Intent(context, DeviceListActivity::class.java)
+                intent.putParcelableArrayListExtra("listDeviceSend", listServicesDevices)
+                context.startActivity(intent)
             }
         },TIME_OUT)
     }

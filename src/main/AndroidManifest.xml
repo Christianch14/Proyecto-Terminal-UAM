@@ -2,12 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.app_cf">
-
-
-    <!--Permission to Internet-->
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
-    <!--Permission to Bluetooth Module-->
-    <uses-permission android:name="android.permission.INTERNET"></uses-permission>
+    <!-- Permission to Internet -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- Permission to Bluetooth Module -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -19,6 +16,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.APP_CF"
         tools:targetApi="31">
+        <activity
+            android:name=".View.DetailServiceActivity"
+            android:exported="false"
+            android:label="@string/title_activity_detail_service"
+            android:theme="@style/Theme.APP_CF" />
+        <activity
+            android:name=".View.DeviceListActivity"
+            android:exported="false"
+            android:label="@string/title_activity_device_list"
+            android:theme="@style/Theme.APP_CF" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

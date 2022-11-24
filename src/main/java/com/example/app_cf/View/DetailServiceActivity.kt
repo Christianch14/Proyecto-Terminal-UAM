@@ -1,4 +1,4 @@
-   package com.example.app_cf
+package com.example.app_cf.View
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,12 +9,10 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.app_cf.Components.MainScreen
-import com.example.app_cf.ui.theme.APP_CFTheme
+import com.example.app_cf.View.ui.theme.APP_CFTheme
 
-class MainActivity : ComponentActivity() {
+class DetailServiceActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -24,11 +22,22 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    val context = LocalContext.current
-                    MainScreen(context)
+                    Greeting("Android")
                 }
             }
         }
     }
 }
 
+@Composable
+fun Greeting(name: String) {
+    Text(text = "Hello $name!")
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    APP_CFTheme {
+        Greeting("Android")
+    }
+}

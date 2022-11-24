@@ -1,10 +1,15 @@
 package com.example.app_cf.Components
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
@@ -21,12 +26,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.app_cf.Model.ServiceDevice
 import com.example.app_cf.R
-
+import com.example.app_cf.View.DetailServiceActivity
 
 
 @Composable
-fun DeviceListScreen(){
+fun DeviceListScreen(
+    listDevices: ArrayList<ServiceDevice>,
+    context: Context
+){
     //Area general de toda la pantalla
     Column(
         modifier= Modifier
@@ -46,7 +55,7 @@ fun DeviceListScreen(){
             )
         }
         //Area de la lista
-        ShowList()
+        ShowList(listDevices,context)
     }
 
 }
@@ -54,27 +63,26 @@ fun DeviceListScreen(){
 @Composable
 @Preview(showBackground = true)
 fun DeviceListScreenPreview(){
-    DeviceListScreen()
+   //dialog()
 }
 
 @Composable
-fun ShowList(){
+fun ShowList(listDevices: ArrayList<ServiceDevice>,context: Context){
 
-
-    //println("tam deviceList ${listItemsExample.size}")
+    println("tam deviceList ${listDevices.size}")
     LazyColumn(contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ){
-        items(){item->
-            DesignItem()
-        }
+        items(listDevices){item->
+         DesignItem(item,context)
+       }
     }
 }
 
 
 
 @Composable
-fun DesignItem() {
+fun DesignItem(item: ServiceDevice,context: Context) {
 
     Card(
         modifier = Modifier,
@@ -92,7 +100,7 @@ fun DesignItem() {
         ){
             Image(
 
-                painter = painterResource(id = R.drawable.logoesp32),
+                painter = painterResource(id = item.image),
                 contentDescription = "Logo dispositivo",
                 contentScale = ContentScale.FillWidth
                 ,modifier = Modifier
@@ -104,15 +112,16 @@ fun DesignItem() {
             ){
                 Text("Dispositivo:",
                     fontSize = 20.sp)
-                Text(text = "",
+                Text(text = item.deviceServiceName,
                     fontSize = 20.sp)
                 Spacer(modifier = Modifier.height(5.dp))
                 Text("Tipo de servicio:",
                     fontSize = 20.sp)
-                Text(text = "",
+                Text(text = item.deviceServiceType,
                     fontSize = 20.sp)
             }
-            Button(onClick = { /*Conect to Server TFTP*/ },
+            Button(
+                onClick = { ShowDialog(context)},
             ) {
                 Text("Conectar")
             }
@@ -120,4 +129,25 @@ fun DesignItem() {
 
     }
 }
+
+
+fun ShowDialog(context: Context) {
+
+    var alertDialog: AlertDialog? = null
+    val alertBuilder = AlertDialog.Builder(context)
+    alertBuilder.setTitle("Conectar")
+    alertBuilder.setMessage("Estas seguro que te quieres conectar")
+    alertBuilder.setPositiveButton("Si") { _: DialogInterface, _:Int ->
+        var intent = Intent(context, DetailServiceActivity::class.java)
+        context.startActivity(intent)
+    }
+    alertBuilder.setNegativeButton("No", { dialogInterface: DialogInterface, i:Int ->})
+    alertDialog = alertBuilder.create()
+    alertDialog?.show()
+}
+
+
+
+
+
 

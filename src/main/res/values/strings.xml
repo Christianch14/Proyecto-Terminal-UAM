@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">APP_CF</string>
+    <string name="title_activity_device_list">DeviceListActivity</string>
+    <string name="title_activity_detail_service">DetailServiceActivity</string>
 </resources>
