@@ -4,14 +4,19 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include "SPIFFS.h"
 
 #define MAX 15
 #define MAX_DEVICES 50
 #define BASE_NAME "UamSensor"
 
 //Se cambian cuando se conectan a otra red
-const char* ssdi = "INFINITUMD79B_2.4";//"INFINITUMD79B_2.4"labred"";
-const char* psswd =  "Agosto2016";//"labred2017*/";
+const char* ssdi1 = "INFINITUMD79B_2.4";//"INFINITUMD79B_2.4"labred"";
+const char* psswd1 =  "Agosto2016";//"labred2017*/";
+const char* ssdi2 = "labred";
+const char* psswd2 =  "labred2017";
+const char* ssdi3 = "WUAMC";
+const char* psswd3 = "wificua6"
 
 using namespace std;
 
@@ -52,7 +57,7 @@ void setup() {
   
   Serial.begin(115200);
 
-  WiFi.begin(ssdi,psswd);
+  WiFi.begin(ssdi2, psswd2);
 
   while (WiFi.status()!= WL_CONNECTED){
     delay(1000);
@@ -80,6 +85,27 @@ void setup() {
   //Imprimimos la direccion IP de la ESP32
   Serial.print("Ip del dispositivo: ");
   Serial.println(WiFi.localIP());
+
+  //Inicializamos el sistema de achivos 
+  if(!SPIFFS.begin(true)){
+    Serial.println("Ocurrio un error mientras de montaba SPIFSS");
+  }
+
+  //abrimos el archivo correspondiente 
+  File file = SPIFFS.open("/firmware.json");
+
+  if(!file){
+    Serial.println("Error al abrir el archivo");
+    return;
+  }
+
+  //Para checar el dispositivo checamos el contenido
+  Serial.println("file content");
+  while(file.available()){
+   Serial.write(file.read());
+  } 
+
+  file.close();
 
 }
 
