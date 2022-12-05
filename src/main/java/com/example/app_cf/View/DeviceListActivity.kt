@@ -27,7 +27,6 @@ class DeviceListActivity : ComponentActivity() {
             intent.getParcelableArrayListExtra<ServiceDevice>("listDeviceSend") 
                     as ArrayList<ServiceDevice>
 
-
         setContent {
             APP_CFTheme {
                 // A surface container using the 'background' color from the theme
