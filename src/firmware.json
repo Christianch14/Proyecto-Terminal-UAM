@@ -1,6 +1,0 @@
-{
-    "nombre":"uamSensor",
-    "tipo de servicio":"_tftp._udp.",
-    "campo1": "valor1",
-    "mensaje": "Hola mundo desde JSON"
-}

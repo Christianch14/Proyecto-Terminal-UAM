@@ -5,20 +5,22 @@
 #include <stdlib.h>
 #include <string.h>
 #include "SPIFFS.h"
+#include "tftp_server.h"
 
-#define MAX 15
 #define MAX_DEVICES 50
 #define BASE_NAME "UamSensor"
+#define TFTP_PORT 69
+
+//Variable para saber en que momento iniciar el servidor TFTP (Solo una vez)
+bool configurado = false;
+
+//Se instancia un objeto de tipo TFTP 
+TFTP server;
 
 //Se cambian cuando se conectan a otra red
-const char* ssdi1 = "INFINITUMD79B_2.4";//"INFINITUMD79B_2.4"labred"";
-const char* psswd1 =  "Agosto2016";//"labred2017*/";
-const char* ssdi2 = "labred";
-const char* psswd2 =  "labred2017";
-const char* ssdi3 = "WUAMC";
-const char* psswd3 = "wificua6"
+const char* ssdi = "labred";
+const char* psswd = "labred2017";
 
-using namespace std;
 
 /**
  * @brief Funcion para generar los nombres de los dispositivos
@@ -27,9 +29,11 @@ using namespace std;
  * @param claveMax 
  * @return char*
  */
+
 String generarNombre(String nombre, int claveMax){
 
   srand(time(NULL));
+
   String nuevoNombre;
 
   //Numero entre 1 y claveMax
@@ -44,20 +48,23 @@ String generarNombre(String nombre, int claveMax){
 }
 
 
+
+
 /**
  * @brief En primera instancia se dara de alta el servicio que ofrece el dispositivo
  * para que la aplicacion pueda encontrarlo y posteriormente hacer la comunicación
  * cliente servidor
- * SENSOR 1
  */
 
 void setup() {
 
   String nombreDispositivo;
-  
   Serial.begin(115200);
 
-  WiFi.begin(ssdi2, psswd2);
+
+  /************* CONEXION A WIFI *************************/
+
+  WiFi.begin(ssdi,psswd);
 
   while (WiFi.status()!= WL_CONNECTED){
     delay(1000);
@@ -65,7 +72,9 @@ void setup() {
   
   }
 
-  // Funcion para generar nombre
+  /********************************************************/
+
+  /************** CREACION DEL SERVICIO TFTP Y MDNS ***********************/
   nombreDispositivo = generarNombre(BASE_NAME,MAX_DEVICES);
 
   Serial.print("Nombre");
@@ -80,34 +89,57 @@ void setup() {
   
 
   //Agregamos el servicio que ofrece el dispositivo
-  MDNS.addService("tftp","udp",69);
+  MDNS.addService("tftp","udp",TFTP_PORT);
 
   //Imprimimos la direccion IP de la ESP32
   Serial.print("Ip del dispositivo: ");
   Serial.println(WiFi.localIP());
+  /************************************************************************/
 
-  //Inicializamos el sistema de achivos 
+
+
+  /************************ SISTEMA DE ARCHIVOS ***************************/
+  //Agregar sistema de archivos SPIFFS
   if(!SPIFFS.begin(true)){
-    Serial.println("Ocurrio un error mientras de montaba SPIFSS");
-  }
-
-  //abrimos el archivo correspondiente 
-  File file = SPIFFS.open("/firmware.json");
-
-  if(!file){
-    Serial.println("Error al abrir el archivo");
+    Serial.println("Ocurrio un error mientras se montaba SPIFFS");
     return;
   }
 
-  //Para checar el dispositivo checamos el contenido
-  Serial.println("file content");
+  File file = SPIFFS.open("/firmware.json");
+
+  //Se imprime el contenido del archivo
   while(file.available()){
-   Serial.write(file.read());
-  } 
+    Serial.write(file.read());
+  }
 
   file.close();
 
+  /************************************************************************/
+
+
+  /***************** SERVIDOR TFTP Y LECTURA DE ARCHIVO *******************/
+  Serial.println("valor de configurado");
+  Serial.println(configurado);
+
+   //iniciar servidor TFTP
+  if(configurado == false) {
+    Serial.print("Servidor TFTP iniciado");
+    server.start();
+    while (server.run(false)>= 0){
+      delay(5000);
+      Serial.println("Trabajando");
+    }
+
+    server.stop();
+    Serial.print("mensaje del servidor ");
+    Serial.println(/*mensajeServer*/);
+  }
+  else{
+    Serial.print("El dispositivo ya esta configurado");
+    server.stop();
+  }
 }
+/****************************************************************************/
 
 
 
@@ -118,6 +150,11 @@ void setup() {
  */
 
 void loop() {
-  // Codigo del servidor aqui
+  /*Codigo del servidor aqui 
+    Se va a ocupar el modo no bloquenate
+    Debemos recordar que el servidor va a empaquetar los datos en formato JSON 
+  **/ 
+
+    
 }
 
