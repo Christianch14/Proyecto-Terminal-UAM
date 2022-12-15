@@ -130,7 +130,7 @@ void setup() {
       Serial.println("Trabajando");
     }
 
-    server.stop();
+    server.stop(); 
     Serial.print("mensaje del servidor ");
     Serial.println(/*mensajeServer*/);
   }
