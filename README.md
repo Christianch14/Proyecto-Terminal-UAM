@@ -66,11 +66,50 @@ Dichos planes o iniciativas se crearon con el propósito de levantar las econom�
 
 Si bien los primeros 3 puntos son sencillos de seguir, el último puede generar varios obstáculos para que se cumpla de la mejor manera ya que en algún momento puede salirse de control la situación y ser un punto de contagio que pone en riesgo la vida de las personas, puede que en un principio pensemos que no podemos tomar el control o que simplemente seria una tarea dificíl o tediosa estar contando a las personas que entran y salen, además de saber cuando el ambiente es el más apropiado para evitar contagios.
 
-Este 
+Este seguimiento puede llevarse a cabo con un sistema de monitorización ya que de esta manera se obtiene información del entorno donde se despliega para después hacer su respectivo análisis, cabe señalar que estos tipos de sistemas ofrecen diversas ventajas como:
+
+* Prevención y detección de problemas.
+* Ahorro de costes y tiempo.
+* Detectar el origen del problema
+* Acceso al estado del sistema en tiempo real.
+
+Entonces la idea principal queda de la siguiente manera:
+
+El sistema de monitorización consta de una red de sensores inalámbricos de 4 tipos (temperatura, CO2, humedad, infrarrojos para conteo de personas) cada uno recolecta y analiza sus propios datos y los mandan a un sumidero de datos para que puedan ser consultados a través de un servicio web.
+
+Por otro lado, la configuración de los sensores se puede hacer a través de una aplicacion móvil diseñada principalmente para el sistema operativo Android (desde su versión 5.0 *Lollipop* hasta una versión antes de Android 11), los detalles acerca de la aplicación se describen en la siguiente sección.
 
 
+# Aplicación  CF APP
 
-# Aplicación CF app
+Como se mencionó anteriormente, varias empresas han desarrollado aplicaciones que se encargan de la configuración de sus propios sensores vía remota, se toma esto como base dando como valor agregado el poder simplificar este proceso bajo nuestro caso de estudio.
+
+El objetivo de la aplicación es que de manera intuitiva y fácil un usuario con poca experiencia en el campo pueda realizar la configuración/actualización necesaria para cada uno de los dispositivos, el proceso que se lleva a cabo para realizar esto es el siguiente:
+
+1- Cada uno de los sensores debe estar conectado ya sea a una red *WIFI* o un *Hotspot*.
+
+![Figura 5: Sensores concetados a  la red](/images/step1.png "Figura 5: Sensores conectados a la red")
+
+
+2- Una vez que la conexión esta hecha, la aplicación detecta los dispositivos que se encuentran en la misma red y los enlista para que el usuario escoja cual es el que desea configurar/actualizar.
+
+![Figura 6: Conexión inicial y listado de sensores](/images/step2.png "Figura 6: Conexión inicial y listado de sensores")
+
+
+3- Al momento de seleccionar el dispositivo de su interés, enseguida se muestra una interfaz con todas las características configurables del dispositivo, en este caso son dos secciones una dedicada al apartado de Red y otro a las características en general.
+
+![Figura 7: Interfaz de configuración de la aplicación](/images/step3.png "Figura 7: Interfaz de configuración de la aplicación")
+
+
+4- Una vez que el usuario terminó de configurar, para que el proceso este completado debe enviar la información con ayuda de un botón.
+
+![Figura 8: Envío de configuración](/images/step4.png "Figura 8: Envío de configuración")
+
+
+5- Por último, el dispositivo recibe la información y aplica los ajustes correspondientes para que este listo para funcionar según las necesidades del usuario.
+
+![Figura 9: Aplicación de configuración en el dispositivo](/images/step5.png "Figura 9: Aplicación de configuración en el dispositivo")
+
 
 
 # Diseño de la aplicación
