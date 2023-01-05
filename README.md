@@ -1,5 +1,5 @@
 # Proyecto - Aplicación Móvil para la configuración de sensores y actuadores remotos 
-## Contexto 
+## 1 Contexto 
 ___
 
 En la época actual la tecnología y su uso ha evolucionado a pasos agigantados, cada vez es mas común su presencia en la vida cotidiana de las personas ayudandolas en sus necesidades más básicas. Por esto no es nada raro pensar también en la IoT *"Internet Of Things"* ya que en conjunto con la tecnología son un gran apoyo al momento de realizar tareas desde las más sencillas *p. ej.* prender la luz de una habitación o abrir una puerta, hasta cosas más sofisticadas *p. ej.* en empresas especializadas en transporte se utiliza para dar seguimiento a sus activos y optimizar el consumo de combustible y de las rutas marítimas, y asi podemos hacer una lista enorme sobre todas las cosas que podemos hacer usando las *IoT*.
@@ -12,7 +12,7 @@ Cabe mencionar que puede tomar un enfoque ligeramente diferente cuando su uso se
 
 Con esto las personas, máquinas y los datos pueden trabajar de manera sincronizada para ofrecer un valor añadido 
 
-## Marco Teórico
+## 2 Marco Teórico
 ___ 
 
 A lo largo de los ultimos años, la industria ha optado por hacer más recurrente el uso de sensores dentro de su marco de trabajo, ya que es un elemento muy versátil que ayuda en muchas tareas, como facilitar las tareas de automatización.
@@ -48,7 +48,7 @@ Otras empresas optan por el desarrollo de aplicaciones ya sean móviles o de esc
 
 En base a estos antecedentes, nosotros queremos llevar un poco más allá esta idea al grado de simplificar aún más este proceso para los usuarios y hacer en lo mayor de lo posible que cualquier persona con los conocimientos mínimos pueda llevar a cabo estar tareas.
 
-# Caso de estudio
+# 3 Caso de estudio
 
 Durante el año 2020 y 2021 el mundo sufrió una serie de cambios que nos llevo al confinamiento durante la pandemia ocacionada por el *SARS COV 2*, Coronavirus o *COVID-19* como también se le conoce, este confinamiento llego a limitar algunas tareas para las personas debido a que el nivel de contagio era alto y lo más recomendable era no salir para nada de sus hogares, aunado a esto se marcó un auge en el uso de aplicaciones móviles y otras herramientas digitales  que hicieron más accesible sobrellevar toda esta situació.
 
@@ -80,7 +80,7 @@ El sistema de monitorización consta de una red de sensores inalámbricos de 4 t
 Por otro lado, la configuración de los sensores se puede hacer a través de una aplicacion móvil diseñada principalmente para el sistema operativo Android (desde su versión 5.0 *Lollipop* hasta una versión antes de Android 11), los detalles acerca de la aplicación se describen en la siguiente sección.
 
 
-# Aplicación  CF APP
+# 4 Aplicación  CF APP
 
 Como se mencionó anteriormente, varias empresas han desarrollado aplicaciones que se encargan de la configuración de sus propios sensores vía remota, se toma esto como base dando como valor agregado el poder simplificar este proceso bajo nuestro caso de estudio.
 
@@ -110,9 +110,183 @@ El objetivo de la aplicación es que de manera intuitiva y fácil un usuario con
 
 ![Figura 9: Aplicación de configuración en el dispositivo](/images/step5.png "Figura 9: Aplicación de configuración en el dispositivo")
 
+## 4.1- Desarrollo de la aplicación
+___
+
+En principio, debemos de tener claro las herramientas que se van a utilizar, en este caso usamos los lenguajes *C++* para la programación de los sensores, *Java* y *Kotlin* en la parte de la aplicación móvil, editores de texto como *Visual Studio Code*, *Android Studio*, programas de diseño para las interfaces como *Figma*, la parte del hardware es brindada por los microcontroladores *ESP-32* que en conjunto con los sensores infrarrojos, temperatura, humedad y *C02* forman el dispositivo que se puede configurar a través de la aplicación, ya por último para realizar la configuración de los dispositivos es con ayuda de archivos en formato *JSON* a los cuales bajo nuestro caso de estudio se llaman archivos de configuración.
+
+## 4.2 Detección de dispositivos en la red 
+(*NSD* API ANDROID)
+___
+
+Para iniciar el proceso de la conexión inicial, primero tanto la app como cada uno de los dispositivos deben de estar conectados a la misma red *WIFI* o un *hotspot*, enseguida, se hace una búsqueda a nivel de servicios de la red para los dispositivos compatibles, cabe resaltar que la aplicación esta diseñada para que reconozca aquellos dispositivos que implementen el servicio *TFTP* que se explica con detalle más adelante, toda esta información esta oculta para el usuario ya que es ocupada a nivel interno de la aplicación y lo único que se le muestra al usuario es la lista final de los dispositivos compatibles. Cada dispositivo dentro de la red tiene un identificador único, esto facilita a la aplicación a no cometer errores al mandar los archivos de configuración al dispositivo incorrecto, en el caso de que se detecte algún problema saber el origen de este y por último llevar un orden. `Uamensor(#)` es el identificador elegido para los dispositivos donde `#` es un número generado de forma aleatoria.
+
+El descubrimiento de servicios en la red es posible gracias a una *API* de *Android* que simplifica este proceso, cuyo nombre es *NSD "Network Services Discovery"*, la cual otorga a la app acceso a los servicios que otros dispositivos proporcionan en una red local. Así, los usuarios podrán identificar otros dispositivos de la red local que admitan los servicios que la aplicación solicita. Cabe señalar que cada dispositivo registra/anuncia el tipo de servicio que ofrece (*TFTP*) de manera automática para que sea encontrado en la red más adelante, esto es posible usando *MDNS*, el cual permite anunciar información sobre los servicios de red que ofrece el dispositivo.
 
 
-# Diseño de la aplicación
+En base a lo anterior, la aplicación se encarga de buscar en la red por un periodo de tiempo aquellos dispositivos que brinden el servicio *TFTP*, preguntando el tipo de sevicio que ofrece, en caso de que la respuesta sea afirmativa, se añade a una lista que posteriormente se le muestra al usuario dentro de la app para seguir con el proceso de configuración. En la figura 10 se observa un esquema general del trabajo que realiza la API y como es ocupada en el desarrollo del proyecto.
+
+![Figura 10: Esquema general de funcionamiento API NSD](/images/nsd.png "Figura 10: Esquema general de funcionamiento API NSD")
+
+
+## 4.3 Proceso de Comunicación App - Dispositivo 
+___
+
+Enseguida de que son listados los dispositivos disponibles para ser configurados, se presenta una parte importante del proyecto: la comunicación entre la aplicación y el dispositivo para que se lleve a cabo su configuración.
+
+Para lograr esto, el proceso se basa en una arquitectura tipo cliente-servidor debido a la naturaleza del servicio *TFTP*, la labor del servidor esta dada por el dispositivo y del lado del cliente nos encontramos con la aplicación, cabe señalar que el tipo de solicitudes que solicita el cliente son tipo *pull*, es decir, que el cliente solo se encarga de obtener la información que le es necesaria del servidor y en este caso se presentan en una interfaz dentro de la aplicación
+
+![Figura 11: Arquitectura de la comunicación](/images/Arquitectura.png "Figura 11: Arquitectura de la comunicación")
+
+# 5 Uso de *TFTP* para la transferenca de archivos
+
+En secciones anteriores, indicamos que el servicio encargado de la transferencia de archivos entre el cliente y servidor está a cargo del protocolo *TFTP*, pero antes de continuar daremos más detalles acerca de este protocolo y sus motivos por los cuales fue elegido para la implementación de este proyecto.
+
+## 5.1 Definición y características 
+___
+
+*TFTP* o *Trivial File Transfer Protocol* es un protocolo simple que se utiliza principalmente para el envío de archivos entre cliente y servidor, por lo mismo de que su concepto es simple, el diseño es sencillo, sin embargo, tiene limitaciones en algunos aspectos p. ej, no implementa ningun tipo de mecanismo de seguridad al momento de archivar la comunicación y es por esta misma razón que no se puede utilizar a través de Internet. En cambio se usaria a nivel de una red de área local.  
+
+Por otro lado, los motivos principales por los cuales se optó por este protocolo son:
+
+* Fácil de implementa.
+* Implementa la arquitectura cliente - servidor de manera simple.
+* Solo se limita a la lectura y escritura de archivos.
+* Utiliza una mínima cantidad de memoria.
+* Es la mejor opción si se requiere enviar archivos de arranque o de configuración entre dispositivos.
+* Es ideal si el almacenamiento de los dispositivos que lo implementan son bajos.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Admite 3 modos de transferencia: 
+
+* *Netascii* (lo cual es *ascii* de acuerdo al código estándar para el intercambio de  información, además que es *ascii* de 8 bits).
+
+* *Octeto* (reemplaza al modo binario que se utilizaba antes).
+
+* *Bytes* sin procesar de 8 *bits*. 
+
+Cualquier transferencia comienza con una solicitud para escribir o leer un archivo esto también sirve para solicitar una conexión, si el servidor concede la petición se abre la conexión y se envía el archivo en bloques fijos de 512 bytes. Cada paquete de datos contiene un bloque de datos y debe ser reconocido por un paquete de reconocimiento antes de que se pueda enviar el siguiente paquete. Un paquete de menos de 512 bytes señala la terminación de una transferencia.
+
+Si un paquete de datos se pierde en la red el receptor previsto expirará y podrá retransmitir su último paquete (ya sean datos o un acuse de recibo) lo que provoca que el remitente  del paquete perdido retransmita ese mismo paquete perdido.
+
+En todo momento el remitente tiene que tener solo un paquete a mano para la retransmisión ya que el acuse de recibo del paso de bloqueo garantiza que todos los  paquetes más antiguos hayan sido recibidos. Hay que tener en cuenta que ambas máquinas involucradas en una transferencia son considerados emisores y receptores, de modo que: 
+> “Uno envía datos y recibe acuses de recibo y el otro envía acuses de recibo y recibe datos ”
+
+Los errores causan la terminación de la conexión, un error es señalado mediante el envío de un paquete de error (este paquete no es transmitido y no es reconocido) un servidor o un usuario podría terminar después de enviar un mensaje de error sin embargo el otro extremo de la conexión puede que no lo consiga. 
+
+Los timeouts  son usados para detectar una terminación cuando el paquete de error ha sido perdido.
+
+Los errores son causados por tres tipos de eventos:
+
+* No se satisface la petición (archivo no encontrado, violation de acceso).
+
+* Recibimiento de un paquete que no puede ser explicado por una demora o duplicación en la red (se formó un paquete incorrectamente).
+
+* Pérdida de acceso para un recurso necesario (disco lleno o acceso denegado durante una transferencia).
+
+## 5.3 Estructura de los paquetes
+
+Debido a que el protocolo actúa sobre *UDP*, e implementa el protocolo de internet, los paquetes pueden tener:
+
+> Encabezado de internet + Encabezado del datagrama + encabezado TFTP 
+
+Como se ilustra en la figura 12 el orden de los encabezados podría ser el siguiente:
+
+# insertar imagen de los encbezados
+
+![Figura 12: Estructura de un paquete](/images/encabezado.png "Figura 12: Estructura de un paquete")
+
+Seguido del resto del paquete *TFTP* ( ya sean datos o no, dependiendo del tipo de paquete que es especificado en el encabezado *TFTP*) *TFTP* no específicos valores del encabezado de internet. Los campos de puerto origen y destino del encabezado del datagrama son usados por *TFTP*, y el campo de longitud refleja el tamaño del paquete *TFTP*.
+
+Los identificadores de transferencia (*TID’S*) son usados por *TFTP* y son pasados a la capa del datagrama para ser usados como puertos por lo tanto hay entre 0 y 65,535.
+
+Tipos de Paquetes TFTP
+
+
+
+
+
+
+
+### 5.3.1 Encabezado *TFTP*
+
+Consiste en un opcode de 2 bytes que indica el tipo de paquete ( DATA, ERROR )
+
+
+## 5.4 Protocolo de conexión inicial
+
+Una transferencia es establecida por una petición
+
+Las peticiones pueden ser de tipo WRQ para escritura en un sistema de archivos externo o RRQ para lectura y recibiendo una respuesta positiva, un paquete de reconocimiento para escritura  o el primer paquete de datos para lectura  
+
+Un paquete de reconocimiento puede contener el número de bloque del paquete de datos que está siendo reconocido
+
+Cada paquete de datos tiene asociado un número de bloque, los números de bloque son consecutivos uno atrás del otro y comienza con 1. Dado que la respuesta positiva a una solicitud de escritura es un paquete de reconocimiento, en este caso en especial el número de bloque podría ser 0.
+
+Para crear una conexión cada extremo elige un *TID* para sí mismo, que se utilizará durante la duración de la conexión, estos *TID’s* deben de elegirse aleatoriamente.
+
+Cada paquete tiene asociado los dos *TID’s* de cada extremo:
+El *TID* origen y el *TID* de destino.Estos TID’s se entregan al soporte UDP como los puertos de origen y destino.
+
+Un host solicitante elige su TID de origen y envía su solicitud inicial al *TID* 69 en el host del servicio
+
+La respuesta a una solicitud en funcionamiento normal, utiliza un *TID* elegido por el servidor como su *TID* de origen y el *TID* elegido para el mensaje anterior por el solicitante como su *TID* de destino. 
+
+Los tipos de paquetes para una solicitud de escritura es lo siguiente:
+* *ACK* (acuse de reconocimiento).
+
+* *WRQ* (solicitud de escritura).
+
+* *DATA* (datos que se van a enviar).
+
+![Figura 13: Ejemplo de solicitud de escritura WRQ](/images/ejemplo.png "Figura 13: Ejemplo de solicitud de escritura WRQ")
+
+Durante el proceso los host deben asegurarse de que el TID de origen coincida con el que se acordó en un inicio, si no llegan a coincidir el paquete debe ser descartado como enviado erróneamente desde otro lugar, entonces se debe de enviar un paquete de error a la gente del paquete incorrecto, sin perturbar la transferencia.
+
+
+
+
+# 6 Sistema de archivos en la ESP32 *SPIFFS*
+
+
+## Citas
+
+[1] - Android Developer, . (03 de junio de 2020). Use network service discovery. Recuperado el 31 de diciembre de 2022 https://developer.android.com/training/connect-devices-wirelessly/nsd
+
+
+
+
+
+
+
+
+
 
 
 
