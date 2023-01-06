@@ -110,7 +110,7 @@ El objetivo de la aplicación es que de manera intuitiva y fácil un usuario con
 
 ![Figura 9: Aplicación de configuración en el dispositivo](/images/step5.png "Figura 9: Aplicación de configuración en el dispositivo")
 
-## 4.1- Desarrollo de la aplicación
+## 4.1- Herramientas para el desarrollo de la aplicación
 ___
 
 En principio, debemos de tener claro las herramientas que se van a utilizar, en este caso usamos los lenguajes *C++* para la programación de los sensores, *Java* y *Kotlin* en la parte de la aplicación móvil, editores de texto como *Visual Studio Code*, *Android Studio*, programas de diseño para las interfaces como *Figma*, la parte del hardware es brindada por los microcontroladores *ESP-32* que en conjunto con los sensores infrarrojos, temperatura, humedad y *C02* forman el dispositivo que se puede configurar a través de la aplicación, ya por último para realizar la configuración de los dispositivos es con ayuda de archivos en formato *JSON* a los cuales bajo nuestro caso de estudio se llaman archivos de configuración.
@@ -138,52 +138,36 @@ Para lograr esto, el proceso se basa en una arquitectura tipo cliente-servidor d
 
 ![Figura 11: Arquitectura de la comunicación](/images/Arquitectura.png "Figura 11: Arquitectura de la comunicación")
 
+## 4.4 Requerimientos funcionales 
+___
+
+## 4.5 Diseño de interfaces
+___
+
 # 5 Uso de *TFTP* para la transferenca de archivos
 
 En secciones anteriores, indicamos que el servicio encargado de la transferencia de archivos entre el cliente y servidor está a cargo del protocolo *TFTP*, pero antes de continuar daremos más detalles acerca de este protocolo y sus motivos por los cuales fue elegido para la implementación de este proyecto.
 
-## 5.1 Definición y características 
+## 5.1 Usos principales y motivos  
 ___
 
 *TFTP* o *Trivial File Transfer Protocol* es un protocolo simple que se utiliza principalmente para el envío de archivos entre cliente y servidor, por lo mismo de que su concepto es simple, el diseño es sencillo, sin embargo, tiene limitaciones en algunos aspectos p. ej, no implementa ningun tipo de mecanismo de seguridad al momento de archivar la comunicación y es por esta misma razón que no se puede utilizar a través de Internet. En cambio se usaria a nivel de una red de área local.  
 
 Por otro lado, los motivos principales por los cuales se optó por este protocolo son:
 
-* Fácil de implementa.
+* Fácil de implementar.
 * Implementa la arquitectura cliente - servidor de manera simple.
 * Solo se limita a la lectura y escritura de archivos.
 * Utiliza una mínima cantidad de memoria.
 * Es la mejor opción si se requiere enviar archivos de arranque o de configuración entre dispositivos.
 * Es ideal si el almacenamiento de los dispositivos que lo implementan son bajos.
 
+## 5.2 Características detalladas
+___
 
+En principio, cualquier tipo de transferencia inicia con una solicitud de escritura o lectura de un archivo y al mismo tiempo se solicita una conexión, si el servidor concede la petición esta se abre y se envía el archivo en bloques fijos de 512 *bytes*. Cada paquete de datos contiene un bloque de datos y debe ser reconocido por un paquete de reconocimiento (*ACK*) antes de que se pueda enviar el siguiente paquete. Si llega un paquete de menos de 512 bytes esto señala que una transferencia ha terminado.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Admite 3 modos de transferencia: 
+Cabe añadir, que *TFTP* admite 3 modos de transferencia: 
 
 * *Netascii* (lo cual es *ascii* de acuerdo al código estándar para el intercambio de  información, además que es *ascii* de 8 bits).
 
@@ -191,72 +175,100 @@ Admite 3 modos de transferencia:
 
 * *Bytes* sin procesar de 8 *bits*. 
 
-Cualquier transferencia comienza con una solicitud para escribir o leer un archivo esto también sirve para solicitar una conexión, si el servidor concede la petición se abre la conexión y se envía el archivo en bloques fijos de 512 bytes. Cada paquete de datos contiene un bloque de datos y debe ser reconocido por un paquete de reconocimiento antes de que se pueda enviar el siguiente paquete. Un paquete de menos de 512 bytes señala la terminación de una transferencia.
-
-Si un paquete de datos se pierde en la red el receptor previsto expirará y podrá retransmitir su último paquete (ya sean datos o un acuse de recibo) lo que provoca que el remitente  del paquete perdido retransmita ese mismo paquete perdido.
-
-En todo momento el remitente tiene que tener solo un paquete a mano para la retransmisión ya que el acuse de recibo del paso de bloqueo garantiza que todos los  paquetes más antiguos hayan sido recibidos. Hay que tener en cuenta que ambas máquinas involucradas en una transferencia son considerados emisores y receptores, de modo que: 
+Hay que tener en cuenta que ambas máquinas involucradas en una transferencia son considerados emisores y receptores, de modo que: 
 > “Uno envía datos y recibe acuses de recibo y el otro envía acuses de recibo y recibe datos ”
 
-Los errores causan la terminación de la conexión, un error es señalado mediante el envío de un paquete de error (este paquete no es transmitido y no es reconocido) un servidor o un usuario podría terminar después de enviar un mensaje de error sin embargo el otro extremo de la conexión puede que no lo consiga. 
+### 5.2.1 Manejo de errores 
+___
 
-Los timeouts  son usados para detectar una terminación cuando el paquete de error ha sido perdido.
+Los errores causan la terminación de la conexión, un error es señalado mediante el envío de un paquete de error (este paquete no es transmitido y no es reconocido),  un servidor o un usuario podría terminar después de enviar un mensaje de error, sin embargo, el otro extremo de la conexión puede que no lo consiga. Los *timeouts*  son usados para detectar una terminación cuando el paquete de error ha sido perdido.
 
 Los errores son causados por tres tipos de eventos:
 
-* No se satisface la petición (archivo no encontrado, violation de acceso).
+* No se satisface la petición (archivo no encontrado, violación de acceso).
 
 * Recibimiento de un paquete que no puede ser explicado por una demora o duplicación en la red (se formó un paquete incorrectamente).
 
 * Pérdida de acceso para un recurso necesario (disco lleno o acceso denegado durante una transferencia).
 
+
 ## 5.3 Estructura de los paquetes
 
 Debido a que el protocolo actúa sobre *UDP*, e implementa el protocolo de internet, los paquetes pueden tener:
 
-> Encabezado de internet + Encabezado del datagrama + encabezado TFTP 
+> Encabezado de internet + Encabezado del datagrama + encabezado *TFTP* 
 
 Como se ilustra en la figura 12 el orden de los encabezados podría ser el siguiente:
 
-# insertar imagen de los encbezados
-
 ![Figura 12: Estructura de un paquete](/images/encabezado.png "Figura 12: Estructura de un paquete")
 
-Seguido del resto del paquete *TFTP* ( ya sean datos o no, dependiendo del tipo de paquete que es especificado en el encabezado *TFTP*) *TFTP* no específicos valores del encabezado de internet. Los campos de puerto origen y destino del encabezado del datagrama son usados por *TFTP*, y el campo de longitud refleja el tamaño del paquete *TFTP*.
+Seguido del resto del paquete *TFTP* ( ya sean datos o no, dependiendo del tipo de paquete que es especificado en el encabezado *TFTP*) *TFTP* no específica valores del encabezado de internet. Los campos de puerto origen y destino del encabezado del datagrama son usados por *TFTP*, por último el campo de longitud refleja el tamaño del paquete *TFTP*.
 
 Los identificadores de transferencia (*TID’S*) son usados por *TFTP* y son pasados a la capa del datagrama para ser usados como puertos por lo tanto hay entre 0 y 65,535.
 
-Tipos de Paquetes TFTP
+los tipos de paquetes que brinda *TFTP* son los siguientes:
 
-
-
-
-
+| Opcode       | Tipo de operación          |
+|--------------|----------------------------|
+| 1            | Solicitud de lectura RRQ   |
+| 2            | Solicitud de escritura WRQ | 
+| 3            | Datos DATA                 | 
+| 4            | Reconocimiento ACK         | 
+| 5            | Error ERROR                | 
 
 
 ### 5.3.1 Encabezado *TFTP*
+___
 
-Consiste en un opcode de 2 bytes que indica el tipo de paquete ( DATA, ERROR )
+Por su parte, el encabezado *TFTP* se construye por el *Opcode* que indica el tipo de paquete ( *DATA*, *ERROR*, etc) seguido del nombre del archivo, un byte 0, el modo en el que se realiza el envío (netascci, octeto o mail)  y nuevamente otro byte 0 como se ilustra en la figura 13:
+
+![Figura 13: Encabezado *TFTP*](/images/headerTFTP.png "Figura 13: Encabezado *TFTP*")
+
+### 5.3.2 Paquetes de datos
+___
+
+Su estructura esta conformada de acuerdo a la figura 14:
+
+![Figura 14: Estrcutura de un paquete de datos](/images/paqueteDatos.png "Figura 14: Estrcutura de un paquete de datos").
+
+En este caso el *Opcode* tiene un valor fijo de 3 ya que se trata de un paquete de datos, enseguida cada paquete de datos tiene asociado un número de bloque, estos números empiezan en uno y van incrementando de uno en uno, por último el campo de datos tiene una longitud de 0 a 512 *bytes*, si el bloque tiene una longitud de 512 *bytes* no es el último bloque de datos, en cambio si tiene una longitud de 0 a 511 *bytes* significa el fin de la transferencia.
+
+
+### 5.3.3 Paquetes de error
+___
+
+En el caso de los paquetes de error, estos pueden ser reconocidos por cualquier otro tipo de paquete, bajo estas circunstancias el código de error es un entero que indica la naturaleza del error y como todas las cadenas termina con un *byte* 0, en la figura 15 se muestra la estructura de este tipo de paquetes,seguida de la tabla en donde se describen los diferentes tipos de errores que se pueden presentar:
+
+![Figura 14: Estrcutura de un paquete de error](/images/paqueteError.png "Figura 14: Estrcutura de un paquete de error").
+
+
+| Valor        | Significado                        |
+|--------------|------------------------------------|
+| 0            | No definido, ver mensaje de error  |
+| 1            | Archivo no encontrado              | 
+| 2            | Violación de acceso                | 
+| 3            | Disco lleno o alojamiento excedido | 
+| 4            | Operación *TFTP* ilegal            | 
+| 5            | *TID* desconocido                  |
+| 6            | Archivo ya existente               |
+| 7            | Usuario no encontrado              |
+
 
 
 ## 5.4 Protocolo de conexión inicial
 
-Una transferencia es establecida por una petición
+Como se menciono antes, una transferencia es establecida por una petición de tipo WRQ para escritura o RRQ para lectura, una vez que se recibie una respuesta positiva existen dos casos: 
 
-Las peticiones pueden ser de tipo WRQ para escritura en un sistema de archivos externo o RRQ para lectura y recibiendo una respuesta positiva, un paquete de reconocimiento para escritura  o el primer paquete de datos para lectura  
+* Un paquete de reconocimiento para la escritura.
+* El primer paquete de datos para lectura  
 
-Un paquete de reconocimiento puede contener el número de bloque del paquete de datos que está siendo reconocido
+Cabe señalar que el paquete de reconocimiento puede contener el número de bloque del paquete de datos que está siendo reconocido.
 
-Cada paquete de datos tiene asociado un número de bloque, los números de bloque son consecutivos uno atrás del otro y comienza con 1. Dado que la respuesta positiva a una solicitud de escritura es un paquete de reconocimiento, en este caso en especial el número de bloque podría ser 0.
+Posterior a esto, para crear una conexión cada extremo elige un *TID* para sí mismo, que se utilizará durante la duración de la conexión, estos *TID’s* deben de elegirse aleatoriamente.Una vez que cada paquete tiene asociado los dos *TID’s* de cada extremo (*TID* origen y *TID* destino)
 
-Para crear una conexión cada extremo elige un *TID* para sí mismo, que se utilizará durante la duración de la conexión, estos *TID’s* deben de elegirse aleatoriamente.
-
-Cada paquete tiene asociado los dos *TID’s* de cada extremo:
-El *TID* origen y el *TID* de destino.Estos TID’s se entregan al soporte UDP como los puertos de origen y destino.
-
-Un host solicitante elige su TID de origen y envía su solicitud inicial al *TID* 69 en el host del servicio
-
-La respuesta a una solicitud en funcionamiento normal, utiliza un *TID* elegido por el servidor como su *TID* de origen y el *TID* elegido para el mensaje anterior por el solicitante como su *TID* de destino. 
+>Estos *TID’s* se entregan al soporte *UDP* como los puertos de origen y destino.
+ 
+Una vez que el host solicitante elige su *TID* de origen, envía su solicitud inicial al *TID* 69 en el host del servicio. Seguido de esto utiliza un *TID* elegido por el servidor como su *TID* de origen y el *TID* elegido para el mensaje anterior por el solicitante como su *TID* de destino. 
 
 Los tipos de paquetes para una solicitud de escritura es lo siguiente:
 * *ACK* (acuse de reconocimiento).
@@ -265,9 +277,14 @@ Los tipos de paquetes para una solicitud de escritura es lo siguiente:
 
 * *DATA* (datos que se van a enviar).
 
-![Figura 13: Ejemplo de solicitud de escritura WRQ](/images/ejemplo.png "Figura 13: Ejemplo de solicitud de escritura WRQ")
+![Figura 16: Ejemplo de solicitud de escritura WRQ](/images/ejemplo.png "Figura 13: Ejemplo de solicitud de escritura WRQ")
 
-Durante el proceso los host deben asegurarse de que el TID de origen coincida con el que se acordó en un inicio, si no llegan a coincidir el paquete debe ser descartado como enviado erróneamente desde otro lugar, entonces se debe de enviar un paquete de error a la gente del paquete incorrecto, sin perturbar la transferencia.
+Durante el proceso los host deben asegurarse de que el *TID* de origen coincida con el que se acordó en un inicio, si no llegan a coincidir el paquete debe ser descartado como enviado erróneamente desde otro lugar, entonces se debe de enviar un paquete de error a la gente del paquete incorrecto, sin perturbar la transferencia.
+
+Resulta que el final de la transferencia está marcada por un paquete de datos que contiene entre 0 y 511 *bytes* de datos, este paquete es admitido por un paquete como todos los demás paquetes de datos. El *host* que reconoce el último paquete de datos puede terminar su lado de la conexión al enviar el *ACK* final. ya que el host qenvía el ACK final, esperará un tiempo antes de terminar para retransmitir el *ACK* final si se ha perdido. El reconocedor podría saber si el *ACK* ha sido perdido si recibe otra vez el paquete de datos final.   
+
+Por último, el host que envía los últimos datos debe transmitirlos hasta que se reconozca el paquete o se agote el tiempo de espera del host emisor. Si la respuesta es un *ACK* , la transmisión se ha completado satisfactoriamente
+
 
 
 
