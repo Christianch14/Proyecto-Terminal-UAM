@@ -1,4 +1,19 @@
 # Proyecto - Aplicación Móvil para la configuración de sensores y actuadores remotos 
+
+### Conocimientos Previos
+___
+Para una mejor comprensión acerca del contenido del documento es preferente conocer de antemano algunos de los siguientes temas:
+
+* Conocimiento básico Redes.
+* Conceptos básicos del protocolo *UDP*.
+* Internet de las cosas.
+* Arquitecturas de software cliente - servidor
+* Uso de microcontroladores.
+* Lenguajes de programación, *Java*, *Kotlin*.
+* Programación de aplicaciones móviles.
+* Conceptos generales acerca del entorno de desarrollo *Android Studio*.
+* Estar familiarizado con *Jetpack Compose*
+
 ## 1 Contexto 
 ___
 
@@ -113,7 +128,7 @@ El objetivo de la aplicación es que de manera intuitiva y fácil un usuario con
 ## 4.1- Herramientas para el desarrollo de la aplicación
 ___
 
-En principio, debemos de tener claro las herramientas que se van a utilizar, en este caso usamos los lenguajes *C++* para la programación de los sensores, *Java* y *Kotlin* en la parte de la aplicación móvil, editores de texto como *Visual Studio Code*, *Android Studio*, programas de diseño para las interfaces como *Figma*, la parte del hardware es brindada por los microcontroladores *ESP-32* que en conjunto con los sensores infrarrojos, temperatura, humedad y *C02* forman el dispositivo que se puede configurar a través de la aplicación, ya por último para realizar la configuración de los dispositivos es con ayuda de archivos en formato *JSON* a los cuales bajo nuestro caso de estudio se llaman archivos de configuración.
+En principio, debemos de tener claro las herramientas que se van a utilizar, en este caso usamos los lenguajes *C++* para la programación de los sensores, *Java* y *Kotlin* en la parte de la aplicación móvil, entornos de desarrollo como *Visual Studio Code*, y extensiones para la programación de *Arduino* como *PlatformiIO* *Android Studio*,  programas de diseño para las interfaces como *Figma*, la parte del hardware es brindada por los microcontroladores *ESP-32* que en conjunto con los sensores infrarrojos, temperatura, humedad y *C02* forman el dispositivo que se puede configurar a través de la aplicación, ya por último para realizar la configuración de los dispositivos es con ayuda de archivos en formato *JSON* a los cuales bajo nuestro caso de estudio se llaman archivos de configuración.
 
 ## 4.2 Detección de dispositivos en la red 
 (*NSD* API ANDROID)
@@ -141,10 +156,49 @@ Para lograr esto, el proceso se basa en una arquitectura tipo cliente-servidor d
 ## 4.4 Requerimientos funcionales 
 ___
 
+Los requerimientos funcionales de la aplicación son los siguientes.
+
+* El usuario pueda identificar y visualziar  los dispositvios compatibles para configuración dentro de la app.
+
+* Poder conectarse con un dispositivo compatible.
+
+* Se le muestren al usuario tanto la configuración de red como las caracteristicas principales del dispositivo compatible.
+
 ## 4.5 Diseño de interfaces
 ___
 
-# 5 Uso de *TFTP* para la transferenca de archivos
+El diseño de las interfaces fue con ayuda de la herramienta *Figma*, a continuación se muestra el flujo de usuario esperado asi como prototipos de baja fidelidad de cada una de las interfaces que conforman a la aplicación y una breve descripción de la interacción que se espera por parte del usuario.
+
+
+### 4.5.1 Interfaz de inicio
+
+Como se ilustra en la figura 12 la intefaz se muestra inmediatamente de que el usuario inicia la aplicación, aqui se encunetra un texto el cual brinda las instrucciones necesarias para que el usuario sepa que hacer a continuación, seguido de el botón se encarga de hacer la busqueda dentro de la red de los dispositivos compatibles con la aplicación (para mayores detalles consultar la sección 4.2 de este documento) 
+
+![Figura 12: Interfaz - Inicio](/images/interfaz1.png "Figura 12: Interfaz - Inicio") 
+
+### 4.5.2 Interfaz lista de dispositivos compatibles 
+
+Una vez que se reconocieron durante un periodo de tiempo todos los dispositivos compatibles, estos se presentan en forma de lista, cada elemento consta de una tarjeta con la información relevante del dispositivo como su nombre o el tipo de servicio que presta y un botón con el cual es usuario se podra conectar al dispositivo para obtener el archivo de configuración por **default*.
+
+
+![Figura 13: Interfaz - Lista de dispositivos compatibles](/images/interfaz2.png "Figura 13: Interfaz - Lista de dispositivos compatibles")
+
+
+### 4.5.3 Interfaz de confirmación de conexión
+
+Por su parte esta interfaz (Figura 14)sirve para que el usuario confirme la conexión con el dispositivo ya que se tiene en cuenta que el usuario por cualquier razón quiera cambiar su decisión de último momento.
+
+![Figura 14: Interfaz - Confirmación de conexión](/images/interfaz3.png "Figura 14: Interfaz - Confirmación de conexión")
+
+### 4.5.4 Interfaz de detalles del dispostivo
+
+Una vez que la aplicación pudo conectarse con el dispositivo y haya recibido el achivo *defualt* del servidor se muestra al usuario la interfaz (Figura 15) en donde en primera instancia se muestra una imagen representativa del dispositivo, estos con fines de un buen aspecto visual, en seguida hay dos pestañas las cuales son red y dispositivo,dentro de red se pueden hacer las configuraciones de la red del dispositivo, en la pestaña dispositivo se encuentran las características configurables del mismo, p. ej. nivel de humedad, temperatura estándar, etc. Por último para guardar los cambios dentro del dispositivo es con el botón enviar, despues el usuario recibe una notificación una vez que el proceso haya sido exitoso.
+
+
+![Figura 15: Interfaz - Detalles del dispositivo](/images/interfaz4.png "Figura 15: Interfaz - Detalles del dispositivo")
+
+
+# 5 Uso de *TFTP* para la transferencia de archivos
 
 En secciones anteriores, indicamos que el servicio encargado de la transferencia de archivos entre el cliente y servidor está a cargo del protocolo *TFTP*, pero antes de continuar daremos más detalles acerca de este protocolo y sus motivos por los cuales fue elegido para la implementación de este proyecto.
 
@@ -198,9 +252,9 @@ Debido a que el protocolo actúa sobre *UDP*, e implementa el protocolo de inter
 
 > Encabezado de internet + Encabezado del datagrama + encabezado *TFTP* 
 
-Como se ilustra en la figura 12 el orden de los encabezados podría ser el siguiente:
+Como se ilustra en la figura 16 el orden de los encabezados podría ser el siguiente:
 
-![Figura 12: Estructura de un paquete](/images/encabezado.png "Figura 12: Estructura de un paquete")
+![Figura 16: Estructura de un paquete](/images/encabezado.png "Figura 16: Estructura de un paquete")
 
 Seguido del resto del paquete *TFTP* ( ya sean datos o no, dependiendo del tipo de paquete que es especificado en el encabezado *TFTP*) *TFTP* no específica valores del encabezado de internet. Los campos de puerto origen y destino del encabezado del datagrama son usados por *TFTP*, por último el campo de longitud refleja el tamaño del paquete *TFTP*.
 
@@ -220,16 +274,16 @@ los tipos de paquetes que brinda *TFTP* son los siguientes:
 ### 5.3.1 Encabezado *TFTP*
 ___
 
-Por su parte, el encabezado *TFTP* se construye por el *Opcode* que indica el tipo de paquete ( *DATA*, *ERROR*, etc) seguido del nombre del archivo, un byte 0, el modo en el que se realiza el envío (netascci, octeto o mail)  y nuevamente otro byte 0 como se ilustra en la figura 13:
+Por su parte, el encabezado *TFTP* se construye por el *Opcode* que indica el tipo de paquete ( *DATA*, *ERROR*, etc) seguido del nombre del archivo, un byte 0, el modo en el que se realiza el envío (netascci, octeto o mail)  y nuevamente otro byte 0 como se ilustra en la figura 17:
 
-![Figura 13: Encabezado *TFTP*](/images/headerTFTP.png "Figura 13: Encabezado *TFTP*")
+![Figura 17: Encabezado *TFTP*](/images/headerTFTP.png "Figura 17: Encabezado *TFTP*")
 
 ### 5.3.2 Paquetes de datos
 ___
 
-Su estructura esta conformada de acuerdo a la figura 14:
+Su estructura esta conformada de acuerdo a la figura 18:
 
-![Figura 14: Estrcutura de un paquete de datos](/images/paqueteDatos.png "Figura 14: Estrcutura de un paquete de datos").
+![Figura 18: Estrcutura de un paquete de datos](/images/paqueteDatos.png "Figura 18: Estrcutura de un paquete de datos").
 
 En este caso el *Opcode* tiene un valor fijo de 3 ya que se trata de un paquete de datos, enseguida cada paquete de datos tiene asociado un número de bloque, estos números empiezan en uno y van incrementando de uno en uno, por último el campo de datos tiene una longitud de 0 a 512 *bytes*, si el bloque tiene una longitud de 512 *bytes* no es el último bloque de datos, en cambio si tiene una longitud de 0 a 511 *bytes* significa el fin de la transferencia.
 
@@ -239,7 +293,7 @@ ___
 
 En el caso de los paquetes de error, estos pueden ser reconocidos por cualquier otro tipo de paquete, bajo estas circunstancias el código de error es un entero que indica la naturaleza del error y como todas las cadenas termina con un *byte* 0, en la figura 15 se muestra la estructura de este tipo de paquetes,seguida de la tabla en donde se describen los diferentes tipos de errores que se pueden presentar:
 
-![Figura 14: Estrcutura de un paquete de error](/images/paqueteError.png "Figura 14: Estrcutura de un paquete de error").
+![Figura 19: Estrcutura de un paquete de error](/images/paqueteError.png "Figura 19: Estrcutura de un paquete de error").
 
 
 | Valor        | Significado                        |
@@ -277,7 +331,7 @@ Los tipos de paquetes para una solicitud de escritura es lo siguiente:
 
 * *DATA* (datos que se van a enviar).
 
-![Figura 16: Ejemplo de solicitud de escritura WRQ](/images/ejemplo.png "Figura 13: Ejemplo de solicitud de escritura WRQ")
+![Figura 20: Ejemplo de solicitud de escritura WRQ](/images/ejemplo.png "Figura 16: Ejemplo de solicitud de escritura WRQ")
 
 Durante el proceso los host deben asegurarse de que el *TID* de origen coincida con el que se acordó en un inicio, si no llegan a coincidir el paquete debe ser descartado como enviado erróneamente desde otro lugar, entonces se debe de enviar un paquete de error a la gente del paquete incorrecto, sin perturbar la transferencia.
 
@@ -285,25 +339,52 @@ Resulta que el final de la transferencia está marcada por un paquete de datos q
 
 Por último, el host que envía los últimos datos debe transmitirlos hasta que se reconozca el paquete o se agote el tiempo de espera del host emisor. Si la respuesta es un *ACK* , la transmisión se ha completado satisfactoriamente
 
+# 6 Sistema de archivo *SPIFFS*
+
+Si bien, el dispostivo que tiene los sensores toma el rol del servidor, este por su naturaleza no tiene un lugar o mejor dicho un directorio en el cual pueda alojar/cargar los archivos, para resolver este problema instalamos un complemento de sistema de archivos en el *ESP32* llamado Sistema de Archivos Flash de Interfaz Periférica Serie (*SPIFFS*) gracias a su compatibilidad con el microcontrolador es creado particionando el flash *SPI NOR* de *ESP32* en una región de archivos binarios y una región de sistema de archivos, con esto podemos usar *SPIFFS* para almacenar archivos en *flash SPI* sin tener que usar ninguna memoria externa con *ESP32*.
+
+Otras puntos importantes es que *SPIFFS* permite a los usuarios leer y escribir archivos a/desde la memoria flash de los microcontroladores, sin embargo, no es altamente recomendable usar la operación de escritura con frecuencia debido al número limitado de ciclos de escritura de la memoria flash. Sin embargo, podemos usarlo para leer, escribir, eliminar y cerrar archivos guardados en *SPIFFS*. Por otro lado cabe indicar que *SPIFFS* no soporta directorios (data/miArchivo.txt). En cambio, produce una estructura plana, es decir una cadena que contiene el directorio en donde se puede leer/guardar el archivo.
+
+Por lo tanto las razones por la cual usamos *SPIFFS* son:
+
+* Es la mejor opcion para crear archivos de configuración con ajustes.
+*  Guardar datos permanentemente.
+* Crear archivos para guardar pequeñas cantidades de datos en lugar de usar una tarjeta *microSD*;
+
+
+## 6.1 Intalación del complemento *SPIFFS* dentro de la *ESP32*
+
+La instalación del *SPIFFS* se realiza tomando en cuenta la extension que brinda *Visual Studio Code* para la programación en Arduino* *PlatformIO* en su versión v2.5.5.
+
+Antes de realizar la instalación es necesario crear una carpeta dentro del proyecto, la carpeta se llama *data* y dentro de ella se encuentran los archivos que vamos a almacenar, en este caso su nombre es *firmware.txt* (el formato del archivo es con fines de pruebas, posteriormente se cambia a un archivo tipo *JSON*), cabe destacar que si no se crea dicha carpeta, la instalación falla por lo cual es un paso indispensable, a estas alturas la estructura del proyecto con la carpeta creada se muestra en la figura 21.
+
+![Figura 21: Paso 1 - Crear la carpeta *data*](/images/spiffs(1).png "Figura 21: Paso 1 - Crear la carpeta *data* " )
+
+En seguida, debemos de cargar la imagen del sistema de archivos, para esto:
+
+1- Dentro de *Visual Studio Code* seleccionamos el icono de la extensión *PlatformIO*, el cual se encuentra en la barra izquierda.
+
+2- Seleccionamos la carpeta *esp32dev* , enseguida extendemos el menu *Platform*.
+
+3- Con la opción *Build Filesystem Image* como su nombre lo indica creamos la imagen del sistema de archivos. 
+
+4- Por último para cargarlo al *esp32* es con la sección llamada *Upload Filesystem Image*
+
+En la figura 18 se muestra dentro de visual las secciones que se describieron anteriormente.
+
+![Figura 22: Paso 2 -  Cargar la imagen del sistema de archivos](/images/spiffs(2).png "Figura 22: Paso 2 - Cargar la imagen del sistema de archivos" ).
+
+
+Por último, una vez que seleccionamos cada una de las opciones anteriores en el orden que se indica, dentro de la terminal se recibimos un mensaje de éxito, con esto ya podemos hacer lectura y escritura de archivos dentro de la *ESP32*, el mensaje que se espera se ilustra en la figura 23.
+
+
+![Figura 23: Paso 3 -  Mensaje de éxito en la terminal en la creación del sistema de archivos](/images/spiffs(2).png "Figura 23: Paso 3 -  Mensaje de éxito en la terminal en la creación del sistema de archivos" )
 
 
 
 
-# 6 Sistema de archivos en la ESP32 *SPIFFS*
-
+# 7- Pruebas de funcionamiento de la aplicación 
 
 ## Citas
 
 [1] - Android Developer, . (03 de junio de 2020). Use network service discovery. Recuperado el 31 de diciembre de 2022 https://developer.android.com/training/connect-devices-wirelessly/nsd
-
-
-
-
-
-
-
-
-
-
-
-
