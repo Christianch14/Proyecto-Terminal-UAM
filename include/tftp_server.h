@@ -1,116 +1,133 @@
-/*
-    MIT License
-    Copyright (c) 2018, Alexey Dynda
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
+#ifndef TFTPSERVER
+#define TFTPSERVER
 
-#pragma once
+//#include "main."
+#include "main.h"
+//#include "../client/tftp_packet.h"
+#include "tftp_packet.h"
 
-#define TFTP_DEFAULT_PORT (69)
+#define TFTP_SERVER_MAX_CLIENTS 10
 
-#include <stdint.h>
-#include <string>
-#include <sys/socket.h>
-#include <sys/param.h>
-#include <netinet/in.h>
+#define TFTP_SERVER_REQUEST_UNDEFINED 0
+#define TFTP_SERVER_REQUEST_READ 1
+#define TFTP_SERVER_REQUEST_WRITE 2
+
+#define TFTP_SERVER_CLIENT_NOT_CONNECTED 0
+#define TFTP_SERVER_CLIENT_CONNECTED 1
+
+#define TFPT_SERVER_CLIENT_ACK_WAITING 0
+#define TFPT_SERVER_CLIENT_ACK_OK 1
+
+#ifndef WIN32
+#define SOCKET int
+#endif
+
+using namespace std;
+
+class TFTPServer {
+
+  public:
+
+	struct ServerClient {
+
+		ServerClient() {
+
+			request = TFTP_SERVER_REQUEST_UNDEFINED;
+			connected = TFTP_SERVER_CLIENT_NOT_CONNECTED;
+			acknowledged = TFPT_SERVER_CLIENT_ACK_WAITING;
+			block = 0;
+			disconnect_on_ack = false;
+
+		}
+
+		int connected;						//- en línea | sin conexión
+		int request;						//- Tipo de solicitud de cliente que ha iniciado sesión
+		int block;							//- Numeración de paquetes
+		int temp;							//- del winsock/recv() implementacion
+		int acknowledged;					//- ¿Es posible enviar al cliente?
+
+		char* ip;							//- dirección IP, para la visualización del mensaje sobre el cliente
+
+		fd_set set;
+
+		SOCKET client_socket;				
+		sockaddr_in address;
+
+		ifstream* file_rrq;
+		ofstream* file_wrq;
+		bool disconnect_on_ack;
+
+		TFTP_Packet last_packet,
+					last_sent_packet;		//- mientras que lo enviamos cuando recibimos ACK, Solo se necesita 1 último paquete para almacenar
+											//- The sender has to keep just one packet on hand for retransmission, since
+											//- El remitente tiene que tener un solo paquete a mano para la retransmisión, ya que
+											//- the lock step acknowledgment guarantees that all older packets have
+											//- El acuse de recibo por pasos de bloqueo garantiza que todos los paquetes más antiguos hayan sido
+											//- recibidos
+											//- been received.
+
+	} clients[TFTP_SERVER_MAX_CLIENTS];
 
 
-class TFTP
-{
-public:
-    TFTP(uint16_t port = TFTP_DEFAULT_PORT);
-    ~TFTP();
+	TFTPServer(int port, char* ftproot);
+	~TFTPServer();
 
-    /**
-     * Starts server.
-     * Returns 0 if server is started successfully
-     */
-    int start();
+  private:
 
-    /**
-     * Listens for incoming requests. Can be executed in blocking and non-blocking mode
-     * @param wait_for true if blocking mode is required, false if non-blocking mode is required
-     */
-    int run(bool wait_for = true);
+    int server_port;
+    char* server_ftproot;
 
-    /**
-     * Stops server
-     */
-    void stop();
+    SOCKET server_socket;
+    struct sockaddr_in server_address;
+    int listener;
 
-protected:
-    void send_ack(uint16_t block_num);
-    void send_error(uint16_t code, const char *message);
-    int wait_for_ack(uint16_t block_num);
+  protected:
 
-    /**
-     * This method is called, when new read request is received.
-     * Override this method and add implementation for your system.
-     * @param file name of the file requested
-     * @return return 0 if file can be read, otherwise return -1
-     */
-    virtual int on_read(const char *file);
+    int sendBuffer(char *);
 
-    /**
-     * This method is called, when new write request is received.
-     * Override this method and add implementation for your system.
-     * @param file name of the file requested
-     * @return return 0 if file can be written, otherwise return -1
-     */
-    virtual int on_write(const char *file);
+	bool sendPacket(TFTP_Packet* packet, ServerClient* client);
+	bool sendPacketData(ServerClient* client);
 
-    /**
-     * This method is called, when new data are required to be read from file for sending.
-     * Override this method and add implementation for your system.
-     * @param buffer buffer to fill with data from file
-     * @param len maximum length of buffer
-     * @return return number of bytes read to buffer
-     * @important if length of read data is less than len argument value, it is considered
-     *            as end of file
-     */
-    virtual int on_read_data(uint8_t *buffer, int len);
+	bool waitForPacket(TFTP_Packet* packet, int current_client_socket, int timeout_ms);
+	bool waitForPacketACK(int packet_number, int timeout_ms);
 
-    /**
-     * This method is called, when new data arrived for writing to file.
-     * Override this method and add implementation for your system.
-     * @param buffer buffer with received data
-     * @param len length of received 
-     * @return return number of bytes written
-     */
-    virtual int on_write_data(uint8_t *buffer, int len);
+	void acceptClients();
+	bool acceptClient(ServerClient* client);
 
-    /**
-     * This method is called, when transfer operation is complete.
-     * Override this method and add implementation for your system.
-     */
-    virtual void on_close();
+	void receiveFromClients();
+	void sendToClients();
 
-private:
-    uint16_t m_port;
-    int m_sock = -1;
-    struct sockaddr m_client;
-    uint8_t *m_buffer = nullptr;
-    int m_data_size;
+	bool receivePacket(ServerClient* client);
 
-    int process_write();
-    int process_read();
-    int parse_wrq();
-    int parse_rrq();
-    int parse_rq();
+	bool sendError(ServerClient* client, int error_no, char* custom_message = (char*)"");
+	bool disconnectClient(ServerClient* client);
 
+	void clientStatus(ServerClient* client, char* message);
 
 };
+
+class ETFTPSocketBind: public std::exception {
+  virtual const char* what() const throw() {
+    return "Unable to bind to an address";
+  }
+};
+
+class ETFTPSocketCreate: public std::exception {
+  virtual const char* what() const throw() {
+    return "Unable to create a socket";
+  }
+};
+
+class ETFTPSocketInitialize: public std::exception {
+  virtual const char* what() const throw() {
+    return "Unable to find socket library";
+  }
+};
+
+class ETFTPSocketListen: public std::exception {
+  virtual const char* what() const throw() {
+    return "Unable to start listening for incoming connectinos";
+  }
+};
+
+#endif

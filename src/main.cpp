@@ -1,11 +1,21 @@
 #include <Arduino.h>
-#include <ESPmDNS.h>
-#include <WiFi.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+
+// - Conexión Wifi y registro de servicios
+#include <ESPmDNS.h>
+#include <WiFi.h>
+
+// - Sistema de archivos
 #include "SPIFFS.h"
-#include "tftp_server.h"
+
+// - Servidor TFTP
+
+#include "./main.h"
+#include "./tftp_server.h"
+
+
 
 #define MAX_DEVICES 50
 #define BASE_NAME "UamSensor"
@@ -14,12 +24,12 @@
 //Variable para saber en que momento iniciar el servidor TFTP (Solo una vez)
 bool configurado = false;
 
-//Se instancia un objeto de tipo TFTP 
-TFTP server;
 
 //Se cambian cuando se conectan a otra red
 const char* ssdi = "labred";
 const char* psswd = "labred2017";
+const char* ssdi2 = "INFINITUMD79B_2.4";
+const char* psswd2 = "Agosto2016";
 
 
 /**
@@ -58,20 +68,20 @@ String generarNombre(String nombre, int claveMax){
 
 void setup() {
 
+  int port = TFTP_DEFAULT_PORT;
   String nombreDispositivo;
   Serial.begin(115200);
 
 
   /************* CONEXION A WIFI *************************/
 
-  WiFi.begin(ssdi,psswd);
+  WiFi.begin(ssdi2,psswd2);
 
   while (WiFi.status()!= WL_CONNECTED){
     delay(1000);
     Serial.println("Conectando al wifi");
   
   }
-
   /********************************************************/
 
   /************** CREACION DEL SERVICIO TFTP Y MDNS ***********************/
@@ -100,6 +110,8 @@ void setup() {
 
   /************************ SISTEMA DE ARCHIVOS ***************************/
   //Agregar sistema de archivos SPIFFS
+ 
+ /*
   if(!SPIFFS.begin(true)){
     Serial.println("Ocurrio un error mientras se montaba SPIFFS");
     return;
@@ -115,29 +127,22 @@ void setup() {
   file.close();
 
   /************************************************************************/
-
+  
 
   /***************** SERVIDOR TFTP Y LECTURA DE ARCHIVO *******************/
-  Serial.println("valor de configurado");
+  Serial.println("Iniciando servidor...");
   Serial.println(configurado);
+  
+  Serial.print("Starting TFTP server on port: ");
+  Serial.println(port);
+  
+  TFTPServer server(port, (char*)"data/");  
+  /*  
+  //Se abre el archivo json y se hace la configuracion
+  Serial.println("TFTP Server was shut down");
+  */
 
-   //iniciar servidor TFTP
-  if(configurado == false) {
-    Serial.print("Servidor TFTP iniciado");
-    server.start();
-    while (server.run(false)>= 0){
-      delay(5000);
-      Serial.println("Trabajando");
-    }
-
-    server.stop(); 
-    Serial.print("mensaje del servidor ");
-    Serial.println(/*mensajeServer*/);
-  }
-  else{
-    Serial.print("El dispositivo ya esta configurado");
-    server.stop();
-  }
+   
 }
 /****************************************************************************/
 
