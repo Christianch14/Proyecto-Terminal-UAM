@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">CSYARCUAJIMALPA</string>
+    <string name="title_activity_list_device_screen">listDeviceScreen</string>
+    <string name="oncahui">oncahui</string>
+    <string name="cerrar">CERRAR</string>
+    <string name="Actualización_Exitosa">Actualización Exitosa !!</string>
+    <string name="bienvenida">Bienvenido !</string>
+    <string name="descripcion">Para configurar un dispositivo sigue las siguientes instrucciones:</string>
+    <string name="paso1">1 - Buscar los dispositvios compatibles para realizar una configuracion con el boton  BUSCAR DISPOSITIVOS</string>
+    <string name="paso2">2 - Enseguida, selecciona el dispostivo de su preferencia y presione el boton CONECTAR</string>
+    <string name="paso3">3 - Una vez que se conecte, aparecerán las caraterísticasque se pueden configurar al dispositivo</string>
+    <string name="paso4">4 - Presione el boton ACTUALIZAR para guardar la configuracion en el dispositivo</string>
+    <string name="paso5">5 - Repita los pasos 1 al 4 con el dispositivo de su preferencia</string>
+    <string name="buscar_dispositivos">Buscar Dispositivos</string>
+    <string name="atras">Atrás</string>
+    <string name="actualizar">Actualizar</string>
+    <string name="red">Red</string>
+    <string name="dispositivo">Dispositivo</string>
+    <string name="name">Name</string>
+    <string name="titleDevice">UamSensor(1)</string>
+</resources>
